@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Typography, Container } from '@mui/material';
+import { Typography, Container, Alert, AlertTitle, Box } from '@mui/material';
 import CompraController from '../controllers/CompraController';
 import Filtros from '../components/Filtros';
 import ComprasTable from '../components/ComprasTable';
 import Loading from '../components/Loading';
-import ErrorAlert from '../components/ErrorAlert';
+
 
 function ComprasView() {
   const [compras, setCompras] = useState([]);
@@ -21,12 +21,12 @@ function ComprasView() {
     setError(null);
     
     try {
-      const response = await CompraController.fetchCompras(filters);
-      setCompras(response.data || []);
-      setTotalItems(response.total || 0);
+      const { data, total } = await CompraController.fetchCompras(filters);
+      setCompras(data);
+      setTotalItems(total);
     } catch (err) {
-      setError('Erro ao carregar dados. Tente novamente.');
-      console.error(err);
+      setError(err.message || 'Erro ao carregar dados. Tente novamente.');
+      console.error('Erro detalhado:', err);
     } finally {
       setLoading(false);
     }
@@ -36,16 +36,31 @@ function ComprasView() {
     loadCompras();
   }, [filters.page, filters.per_page]);
 
-  const handleSearch = () => {
-    setFilters(prev => ({ ...prev, page: 1 }));
+  const handleSearch = (searchFilters) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      ...searchFilters,
+      page: 1 // Resetar para a primeira página
+    }));
   };
 
   const handlePageChange = (newPage) => {
-    setFilters(prev => ({ ...prev, page: newPage + 1 }));
+    setFilters(prev => ({ 
+      ...prev, 
+      page: newPage + 1 
+    }));
   };
 
   const handleRowsPerPageChange = (rows) => {
-    setFilters(prev => ({ ...prev, per_page: rows, page: 1 }));
+    setFilters(prev => ({ 
+      ...prev, 
+      per_page: rows,
+      page: 1
+    }));
+  };
+
+  const handleRetry = () => {
+    loadCompras();
   };
 
   return (
@@ -58,12 +73,20 @@ function ComprasView() {
       </Typography>
 
       <Filtros 
-        filters={filters} 
-        setFilters={setFilters} 
-        onSearch={handleSearch} 
+        onSearch={handleSearch}
+        initialValues={filters}
       />
 
-      {error && <ErrorAlert message={error} onRetry={loadCompras} />}
+      {error && (
+        <Alert 
+          severity="error" 
+          onClose={handleRetry}
+          sx={{ mb: 2 }}
+        >
+          <AlertTitle>Erro</AlertTitle>
+          {error}
+        </Alert>
+      )}
 
       {loading ? (
         <Loading />

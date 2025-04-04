@@ -1,49 +1,82 @@
-import { TextField, Button, Box, Grid } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers';
+import { useState } from 'react';
+import { TextField, Button, Box, Grid, MenuItem } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
-function Filtros({ filters, setFilters, onSearch }) {
+
+function Filtros({ initialValues, onSearch }) {
+  const [filters, setFilters] = useState({
+    municipio: initialValues.municipio || '',
+    valor_min: initialValues.valor_min || '',
+    valor_max: initialValues.valor_max || '',
+    data_inicio: initialValues.data_inicio || null,
+    data_fim: initialValues.data_fim || null
+  });
+
+  const handleChange = (name, value) => {
+    setFilters(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = () => {
+    onSearch(filters);
+  };
+
   return (
     <Box sx={{ mb: 4 }}>
-      <Grid container spacing={2}>
+      <Grid container spacing={2} alignItems="center">
         <Grid item xs={12} md={3}>
           <TextField
             fullWidth
-            label="Município"
-            value={filters.municipio || ''}
-            onChange={(e) => setFilters({ ...filters, municipio: e.target.value })}
+            label="Unidade/Município"
+            value={filters.municipio}
+            onChange={(e) => handleChange('municipio', e.target.value)}
           />
         </Grid>
+        
         <Grid item xs={12} md={2}>
           <TextField
             fullWidth
             label="Valor Mínimo"
             type="number"
-            value={filters.valor_min || ''}
-            onChange={(e) => setFilters({ ...filters, valor_min: Number(e.target.value) })}
+            value={filters.valor_min}
+            onChange={(e) => handleChange('valor_min', e.target.value)}
+            InputProps={{ inputProps: { min: 0 } }}
           />
         </Grid>
+        
         <Grid item xs={12} md={2}>
           <TextField
             fullWidth
             label="Valor Máximo"
             type="number"
-            value={filters.valor_max || ''}
-            onChange={(e) => setFilters({ ...filters, valor_max: Number(e.target.value) })}
+            value={filters.valor_max}
+            onChange={(e) => handleChange('valor_max', e.target.value)}
+            InputProps={{ inputProps: { min: 0 } }}
           />
         </Grid>
-        <Grid item xs={12} md={3}>
+        
+        <Grid item xs={12} md={2}>
           <DatePicker
             label="Data Inicial"
-            value={filters.data_inicio || null}
-            onChange={(date) => setFilters({ ...filters, data_inicio: date })}
+            value={filters.data_inicio}
+            onChange={(date) => handleChange('data_inicio', date)}
             renderInput={(params) => <TextField fullWidth {...params} />}
           />
         </Grid>
-        <Grid item xs={12} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
+        
+        <Grid item xs={12} md={2}>
+          <DatePicker
+            label="Data Final"
+            value={filters.data_fim}
+            onChange={(date) => handleChange('data_fim', date)}
+            renderInput={(params) => <TextField fullWidth {...params} />}
+          />
+        </Grid>
+        
+        <Grid item xs={12} md={1} sx={{ display: 'flex' }}>
           <Button 
             fullWidth 
             variant="contained" 
-            onClick={onSearch}
+            onClick={handleSubmit}
             sx={{ height: '56px' }}
           >
             Buscar
